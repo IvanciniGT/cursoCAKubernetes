@@ -1,0 +1,15 @@
+kind: Service
+apiVersion: v1
+
+metadata:
+    name: miweb # Nombre DNS - IP Propia del BC
+
+spec:
+    ports:
+        - # La definicion de mapeos de puertos 
+            targetPort: 80 # La IP del POD
+            port: 8080     # IP DEL BALANCEADOR
+    selector:
+        app: servidor-mi-web # Balanceador
+        
+# Los servicios no dan gestión de colas

@@ -1,0 +1,62 @@
+kind: Pod
+apiVersion: v1
+
+metadata:
+    name: multi-pod # Identificador
+
+spec:
+    volumes:
+        - # Volumen 1
+            name: volumen1
+            #emptyDir: {} # El valor es un MAPA vacio
+            emptyDir: 
+                medium: Memory
+            
+        #- # Volumen 2
+        #    name: volumen2
+
+    containers:
+        - # Contenedor de FEDORA
+            name: fedora
+            image: fedora:latest
+            command:
+                - sh
+                - -c
+                - sleep 3600;
+            volumeMounts:
+                - name: volumen1
+                  mountPath: /datosFedora
+            env:
+                - name: VARIABLE1
+                  value: VALOR1
+                - name: VARIABLE2
+                  value: "VALOR2"
+                - name: VARIABLE3
+                  value: 'VALOR3'
+                - name: VARIABLE4
+                  value: >-
+                    Palabra 1
+                    Palabra 2
+                    Palabra 3
+                - name: VARIABLE5
+                  value: |1+
+                    Linea 1
+                    Linea 2
+                    Linea 3
+                    
+                    
+                    
+        - # Contenedor de UBUNTU
+            name: ubuntu
+            image: ubuntu:latest
+            command:
+                - sh
+                - -c
+                - sleep 3600;
+            volumeMounts:
+                - name: volumen1
+                  mountPath: /datosUbuntu
+        
+        - # Contenedor de NGINX
+            name: nginx
+            image: nginx:latest

@@ -1,0 +1,98 @@
+#namespace
+kind: Namespace
+apiVersion: v1
+
+metadata:
+    name: basedatos
+
+---        
+# Desarrollador
+kind: PersistentVolumeClaim
+apiVersion: v1
+
+metadata:
+    name: peticion-volumen-mariadb
+
+spec:
+#        Tamaño           50Gbs
+    resources:
+        requests:
+            storage: 1Gi
+    accessModes:
+        - ReadWriteOnce # Un volumen que quiero donde poder escribir solo yo
+#        - ReadWriteMany # Un volumen que se puede entregar a muchos pods
+#        - ReadOnceMany  # Un volumen que se puede entregar a muchos pods solo para lectura
+    storageClassName: rapidito-redundante
+#        Rendimiento      ALTO
+#        Replicación      SI   RAID ESPEJO
+#        Encripción       NO
+
+---
+
+#pod 
+kind: Pod
+apiVersion: v1
+
+metadata:
+    name: mariadb-pod
+    labels:
+        app: mariadb
+spec:
+    containers:
+        - name: mariadb
+          image: mariadb:latest
+          ports:
+            - containerPort: 3306
+          volumeMounts:
+            - name: datos
+              mountPath: /var/lib/mysql
+          env:
+            - name: MARIADB_ROOT_PASSWORD
+              value: password
+            - name: MARIADB_USER
+              value: usuario
+            - name: MARIADB_PASSWORD
+              value: password
+            - name: MARIADB_DATABASE
+              value: prueba
+
+    volumes:
+        - name: datos
+          persistentVolumeClaim:
+            claimName: peticion-volumen-mariadb
+        
+---
+# Admisnitrador
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+    name: volumen-mariadb
+
+spec:
+    capacity:
+        storage: 2Gi
+    accessModes:
+        - ReadWriteOnce # Un volumen que quiero donde poder escribir solo yo
+        - ReadWriteMany # Un volumen que se puede entregar a muchos pods
+    storageClassName: rapidito-redundante
+    
+    hostPath:
+        type: DirectoryOrCreate
+        path: /home/ubuntu/environment/datos/mariadb
+    # Politica de reciclaje de datos
+        # El volumen se borra al desvincularse
+        # El volumen (los datos) se mantienen al desvincularse
+---
+#servicio
+kind: Service
+apiVersion: v1
+
+metadata:
+    name: mariadb-svc
+
+spec:
+    ports:
+        - port: 3306
+          targetPort: 3306
+    selector:
+        app: mariadb

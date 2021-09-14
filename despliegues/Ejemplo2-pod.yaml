@@ -1,0 +1,31 @@
+kind: Pod
+apiVersion: v1
+
+metadata:
+    name: nginx-pod # Identificador
+    labels:
+        app: servidor-mi-web # No son únicas
+
+spec:
+    containers:
+        - # Contenedor de NGINX
+            name: mi-nginx
+            image: nginx:latest
+            ports:
+                - containerPort: 80
+---
+kind: Pod
+apiVersion: v1
+
+metadata:
+    name: nginx-pod-2 # Identificador
+    labels:
+        app: servidor-mi-web # No son únicas
+
+spec:
+    containers:
+        - # Contenedor de NGINX
+            name: mi-nginx
+            image: nginx:latest
+            ports:
+                - containerPort: 80
