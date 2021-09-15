@@ -12,6 +12,8 @@ kubectl [verbo] [tipo de objeto] [modificadores]
         - namespaces
         - services
         - all
+        - persistentvolume   (pv)
+        - persistentvolumeclaim (pvc)
         
     modificadores:
         - -n, --namespace

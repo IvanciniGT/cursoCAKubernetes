@@ -200,3 +200,36 @@ ResourceQuota
 LimitRanges
 
 
+DEPLOYMENT:
+    Plantilla de pods de la que quiero un número inicial de replicas en funcionamiento
+STAFULSET:
+    Plantilla de pods + Pkantilla de pvcs de la que quiero un número inicial de replicas en funcionamiento
+        pero... quiero... nombres de pods que no sean aleatorios y además
+            quiero que cada pod tenga sus propias peticiones de volumen
+DAEMONSET:    
+    Plantilla de pods de la que ya se cuantas replicas en funcionamiento quiero... tantas como nodos
+    
+    
+Un deployment siempre lleva asociado un replicaset
+Replicaset:
+    Un programa dentro de kubernetes que segura que siempre tengo el numero deseado de pods
+    
+    
+    MariaDB1    >>>>>   ficheros datos   <<<<<<< MariaDB2      PLOSSS !!!!!
+    
+    
+    
+WORDPRESS (CRM)  10 replicas + BALANCEADOR DE CARGA
+    Cargo con una página WEB (VOLUMEN)
+
+Quiero los 10 nginx trabajando sobre el mismo volumen? o sobre volumenes diferentes?
+    Mismo?
+    
+Cliente ----BC   -----  WP1
+                 \----  WP2* Sube fichero PDF
+Cliente2          \---  WP3 ** 
+
+Cluster MariaDBs
+    MariaDB1 --- Aquí habrá unos datos
+    MariaDB2 --- Aquí hay otra parte de los datos
+    MariaDB3 --- Aquí otros

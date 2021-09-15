@@ -5,6 +5,7 @@ metadata:
     name: miweb # Nombre DNS - IP Propia del BC
 
 spec:
+    type: ClusterIP # Por defecto
     ports:
         - # La definicion de mapeos de puertos 
             targetPort: 80 # La IP del POD

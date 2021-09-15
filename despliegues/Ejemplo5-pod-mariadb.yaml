@@ -5,28 +5,6 @@ apiVersion: v1
 metadata:
     name: basedatos
 
----        
-# Desarrollador
-kind: PersistentVolumeClaim
-apiVersion: v1
-
-metadata:
-    name: peticion-volumen-mariadb
-
-spec:
-#        Tamaño           50Gbs
-    resources:
-        requests:
-            storage: 1Gi
-    accessModes:
-        - ReadWriteOnce # Un volumen que quiero donde poder escribir solo yo
-#        - ReadWriteMany # Un volumen que se puede entregar a muchos pods
-#        - ReadOnceMany  # Un volumen que se puede entregar a muchos pods solo para lectura
-    storageClassName: rapidito-redundante
-#        Rendimiento      ALTO
-#        Replicación      SI   RAID ESPEJO
-#        Encripción       NO
-
 ---
 
 #pod 
@@ -61,27 +39,6 @@ spec:
           persistentVolumeClaim:
             claimName: peticion-volumen-mariadb
         
----
-# Admisnitrador
-kind: PersistentVolume
-apiVersion: v1
-metadata:
-    name: volumen-mariadb
-
-spec:
-    capacity:
-        storage: 2Gi
-    accessModes:
-        - ReadWriteOnce # Un volumen que quiero donde poder escribir solo yo
-        - ReadWriteMany # Un volumen que se puede entregar a muchos pods
-    storageClassName: rapidito-redundante
-    
-    hostPath:
-        type: DirectoryOrCreate
-        path: /home/ubuntu/environment/datos/mariadb
-    # Politica de reciclaje de datos
-        # El volumen se borra al desvincularse
-        # El volumen (los datos) se mantienen al desvincularse
 ---
 #servicio
 kind: Service

@@ -1,0 +1,187 @@
+#Namespace:     web
+kind:           Namespace
+apiVersion:     v1
+metadata:       
+    name:       web
+---
+#PV             También para los 2            1Gb <<<<<  Simplemente es informativo cuando no usamos un provisionador automático
+kind:           PersistentVolume
+apiVersion:     v1
+metadata:       
+    name:       volumen-wordpress
+
+spec:
+    capacity:
+        storage: 1Gi
+    accessModes:
+        - ReadWriteMany # Un volumen que se puede entregar a muchos pods
+    storageClassName: normal
+    
+    hostPath:
+        type: DirectoryOrCreate
+        path: /home/ubuntu/environment/datos/wordpress
+---
+kind:           PersistentVolume
+apiVersion:     v1
+metadata:       
+    name:       volumen-bbdd-wordpress
+
+spec:
+    capacity:
+        storage: 1Gi
+    accessModes:
+        - ReadWriteMany # Un volumen que se puede entregar a muchos pods
+    storageClassName: redundante
+    
+    hostPath:
+        type: DirectoryOrCreate
+        path: /home/ubuntu/environment/datos/bbdd-wordpress
+---
+#PVC            Para los 2
+kind: PersistentVolumeClaim
+apiVersion: v1
+
+metadata:
+    name: peticion-volumen-wordpress
+
+spec:
+    resources:
+        requests:
+            storage: 1Gi
+    accessModes:
+        - ReadWriteMany # Un volumen que se puede entregar a muchos pods
+    storageClassName: normal
+---
+#Service:       MariaDB    ClusterIP : 3306
+kind:           Service
+apiVersion:     v1
+
+metadata:
+    name:       mariadb # Nombre DNS - IP Propia del BC
+
+spec:
+    type:       ClusterIP # Por defecto
+    ports:
+        - # La definicion de mapeos de puertos 
+            targetPort: 3306 # La IP del POD
+            port:       3306     # IP DEL BALANCEADOR
+    selector:
+        app:    mariadb # Balanceador
+---
+#               Wordpress  NodePort  : 30080:80  *****
+kind:           Service
+apiVersion:     v1
+
+metadata:
+    name:       wordpress # Nombre DNS - IP Propia del BC
+
+spec:
+    type:       NodePort # Por defecto
+    ports:
+        - # La definicion de mapeos de puertos 
+            targetPort: 80     # La IP del POD
+            port:       80     # IP DEL BALANCEADOR
+            nodePort:   30080
+    selector:
+        app:    wordpress # Balanceador
+---
+#Deployment:    Wordpress
+kind:           Deployment
+apiVersion:     apps/v1
+
+metadata:
+    name:       wordpress
+
+spec:
+    replicas: 1
+    
+    selector:
+        matchLabels:
+            app: wordpress
+            
+    template:
+        metadata:
+            name:       wordpress-template
+            labels:
+                app:    wordpress
+        
+        spec:
+            containers:
+                - name:         wordpress
+                  image:        wordpress:latest
+                  env:
+                    - name:     WORDPRESS_DB_HOST
+                      value:    mariadb
+                    - name:     WORDPRESS_DB_USER
+                      value:    wordpress
+                    - name:     WORDPRESS_DB_PASSWORD
+                      value:    password
+                    - name:     WORDPRESS_DB_NAME
+                      value:    wordpress
+                    - name:     WORDPRESS_TABLE_PREFIX
+                      value:    wp_
+                  ports:
+                    - containerPort: 80
+                  volumeMounts:
+                    - name:         datos
+                      mountPath:    /var/www/html
+            volumes:
+                - name:             datos
+                  persistentVolumeClaim:
+                    claimName:      peticion-volumen-wordpress
+---
+#StatefulSet:   Mariadb                          ***** Deployment
+kind:           StatefulSet
+apiVersion:     apps/v1
+
+metadata:
+    name:       mariadb
+
+spec:
+    serviceName: mariadb
+    
+    replicas: 1
+    
+    selector:
+        matchLabels:
+            app: mariadb
+    
+    template:
+        metadata:
+            name:       mariadb-template
+            labels:
+                app:    mariadb
+        
+        spec:
+            containers:
+                - name:         mariadb
+                  image:        mariadb:latest
+                  env:
+                    - name:     MARIADB_USER
+                      value:    wordpress
+                    - name:     MARIADB_PASSWORD
+                      value:    password
+                    - name:     MARIADB_ROOT_PASSWORD
+                      value:    password
+                    - name:     MARIADB_DATABASE
+                      value:    wordpress
+                  ports:
+                    - containerPort: 3306
+                  volumeMounts:
+                    - name:         peticion-volumen-bbdd-wordpress #datos
+                      mountPath:    /var/lib/mysql
+#            volumes:
+#                - name:             datos
+#                  persistentVolumeClaim:
+#                    claimName:      peticion-volumen-bbdd-wordpress
+    volumeClaimTemplates:
+        - metadata:
+             name: peticion-volumen-bbdd-wordpress
+        
+          spec:
+            resources:
+                requests:
+                    storage: 1Gi
+            accessModes:
+                - ReadWriteMany # Un volumen que se puede entregar a muchos pods
+            storageClassName: redundante

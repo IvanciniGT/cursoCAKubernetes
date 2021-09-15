@@ -1,0 +1,58 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+    name: nginx-deployment
+
+spec:
+    replicas: 6
+    selector:
+        matchLabels:
+            app: nginx
+    template:
+        metadata:
+            name: nginx-pod-template
+            labels:
+                app: nginx
+        spec:
+            volumes:
+                - name: la-web
+                  emptyDir: {}
+            initContainers:
+                # Los init-containers definidos dentro de un pod se ejecutan secuencialmente, según orden de definición
+                # Permite ejecutar: scripts
+                - name: descargador-de-la-web
+                  image: ubuntu:latest
+                  volumeMounts:
+                    - name: la-web
+                      mountPath: /web
+                  command:
+                    - sh
+                    - -c
+                    - "apt-get update -y && apt-get install git -y && git clone https://github.com/IvanciniGT/webEjemploAnsible /web"
+                        
+            containers:
+                # Todos los contenedores definidos dentro de un pod se ejecutan en paralelo
+                # Puedo ejecutar: servicios y daemons
+                - name: nginx
+                  image: nginx:latest
+                  volumeMounts:
+                    - name: la-web
+                      mountPath: /usr/share/nginx/html
+                  ports:
+                    - containerPort: 80
+---
+kind: Service
+apiVersion: v1
+
+metadata:
+    name: nginx # Nombre DNS - IP Propia del BC
+
+spec:
+    ports:
+        - # La definicion de mapeos de puertos 
+            targetPort: 80 # La IP del POD
+            port: 8080     # IP DEL BALANCEADOR
+    selector:
+        app: nginx # Balanceador
+        
+        
