@@ -229,10 +229,35 @@ Cada pod tendrá:
 
 
 
+md5 | sha      # Algoritmos de Hash
+                    LETRA DEL DNI !!!!!
+                    
+base64         # Algoritmo de Recodificacion
 
-
+aks            # Algoritmo de Encriptación asimetrico
 
 
     
+HOLA   
+    2.300.000  ->    %23   -> 0 -- 22   Cada uno tiene asignado una letra: 0-> T
+        -> T  ¿Esto contiene toda la información original?
+        
+    2 300 000    Recodificacion : A cada numero le sumo 1
+    3 411 111    <- Puedo volver al anterior? Restando 1
+    2 300 000
     
+    2300000 -> dhfsa djsfkl dhs kljhd sfkjadhs kjhfds fk
+
+
+-----------------
+
+
+HELM
+Gestor de paquetes de Kubernetes
+
+En HELM la gente (desarrolladores del mundo) sube paquetes de despliegue configurables.
+    CHARTS de HELM
+    
+    Puedo usar HELM para instalar packetes (apps) en mi cluster    <<<<<<<<<<<<<<<<<<<
+    Puedo usar HELM para desarrollar packetes (apps) *****
     

@@ -1,42 +1,4 @@
-#Namespace:     web
-kind:           Namespace
-apiVersion:     v1
-metadata:       
-    name:       web
----
-#PV             También para los 2            1Gb <<<<<  Simplemente es informativo cuando no usamos un provisionador automático
-kind:           PersistentVolume
-apiVersion:     v1
-metadata:       
-    name:       volumen-wordpress
 
-spec:
-    capacity:
-        storage: 1Gi
-    accessModes:
-        - ReadWriteMany # Un volumen que se puede entregar a muchos pods
-    storageClassName: normal
-    
-    hostPath:
-        type: DirectoryOrCreate
-        path: /home/ubuntu/environment/datos/wordpress
----
-kind:           PersistentVolume
-apiVersion:     v1
-metadata:       
-    name:       volumen-bbdd-wordpress
-
-spec:
-    capacity:
-        storage: 1Gi
-    accessModes:
-        - ReadWriteMany # Un volumen que se puede entregar a muchos pods
-    storageClassName: redundante
-    
-    hostPath:
-        type: DirectoryOrCreate
-        path: /home/ubuntu/environment/datos/bbdd-wordpress
----
 #PVC            Para los 2
 kind: PersistentVolumeClaim
 apiVersion: v1
@@ -52,6 +14,8 @@ spec:
         - ReadWriteMany # Un volumen que se puede entregar a muchos pods
     storageClassName: normal
 ---
+
+
 #Service:       MariaDB    ClusterIP : 3306
 kind:           Service
 apiVersion:     v1
@@ -68,6 +32,8 @@ spec:
     selector:
         app:    mariadb # Balanceador
 ---
+
+
 #               Wordpress  NodePort  : 30080:80  *****
 kind:           Service
 apiVersion:     v1
@@ -85,6 +51,8 @@ spec:
     selector:
         app:    wordpress # Balanceador
 ---
+
+
 #Deployment:    Wordpress
 kind:           Deployment
 apiVersion:     apps/v1
@@ -112,14 +80,31 @@ spec:
                   env:
                     - name:     WORDPRESS_DB_HOST
                       value:    mariadb
+                      
                     - name:     WORDPRESS_DB_USER
-                      value:    wordpress
+                      valueFrom:    
+                        configMapKeyRef:
+                            name: datos-bbdd
+                            key:  DB_USER
+                            
                     - name:     WORDPRESS_DB_PASSWORD
-                      value:    password
+                      valueFrom:    
+                        secretKeyRef:
+                            name: datos-bbdd
+                            key:  DB_PASSWORD
+                            
                     - name:     WORDPRESS_DB_NAME
-                      value:    wordpress
+                      valueFrom:    
+                        configMapKeyRef:
+                            name: datos-bbdd
+                            key:  DATABASE
+                            
                     - name:     WORDPRESS_TABLE_PREFIX
-                      value:    wp_
+                      valueFrom:    
+                        configMapKeyRef:
+                            name: datos-bbdd
+                            key:  TABLE_PREFIX
+                            
                   ports:
                     - containerPort: 80
                   volumeMounts:
@@ -130,6 +115,8 @@ spec:
                   persistentVolumeClaim:
                     claimName:      peticion-volumen-wordpress
 ---
+
+
 #StatefulSet:   Mariadb                          ***** Deployment
 kind:           StatefulSet
 apiVersion:     apps/v1
@@ -158,13 +145,29 @@ spec:
                   image:        mariadb:latest
                   env:
                     - name:     MARIADB_USER
-                      value:    wordpress
+                      valueFrom:    
+                        configMapKeyRef:
+                            name: datos-bbdd
+                            key:  DB_USER
+
                     - name:     MARIADB_PASSWORD
-                      value:    password
+                      valueFrom:    
+                        secretKeyRef:
+                            name: datos-bbdd
+                            key:  DB_PASSWORD
+
                     - name:     MARIADB_ROOT_PASSWORD
-                      value:    password
+                      valueFrom:    
+                        secretKeyRef:
+                            name: datos-bbdd
+                            key:  ROOT_PASSWORD
+
                     - name:     MARIADB_DATABASE
-                      value:    wordpress
+                      valueFrom:    
+                        configMapKeyRef:
+                            name: datos-bbdd
+                            key:  DB_NAME
+
                   ports:
                     - containerPort: 3306
                   volumeMounts:

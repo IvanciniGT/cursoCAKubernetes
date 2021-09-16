@@ -1,0 +1,41 @@
+---
+#Namespace:     web
+kind:           Namespace
+apiVersion:     v1
+metadata:       
+    name:       web
+
+---
+#PV             También para los 2            1Gb <<<<<  Simplemente es informativo cuando no usamos un provisionador automático
+kind:           PersistentVolume
+apiVersion:     v1
+metadata:       
+    name:       volumen-wordpress
+
+spec:
+    capacity:
+        storage: 1Gi
+    accessModes:
+        - ReadWriteMany # Un volumen que se puede entregar a muchos pods
+    storageClassName: normal
+    
+    hostPath:
+        type: DirectoryOrCreate
+        path: /home/ubuntu/environment/datos/wordpress
+
+---
+kind:           PersistentVolume
+apiVersion:     v1
+metadata:       
+    name:       volumen-bbdd-wordpress
+
+spec:
+    capacity:
+        storage: 1Gi
+    accessModes:
+        - ReadWriteMany # Un volumen que se puede entregar a muchos pods
+    storageClassName: redundante
+    
+    hostPath:
+        type: DirectoryOrCreate
+        path: /home/ubuntu/environment/datos/bbdd-wordpress

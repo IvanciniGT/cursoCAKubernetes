@@ -1,0 +1,100 @@
+kind:               ConfigMap
+apiVersion:         v1
+
+metadata:
+    name:           datos
+
+data:
+    CLAVE1:         valor1
+    CLAVE2:         valor2
+
+---
+kind:               ConfigMap
+apiVersion:         v1
+
+metadata:
+    name:           ficheros
+
+data:
+    fichero1.conf: |
+        #Contenido que quiera del fichero
+        prop1=valor
+        
+        # Otra propiedades
+        mas=17
+        y otras cosas....
+
+    fichero2.xml:  |
+        <hola>
+            <importante>Soy un fichero XML de configuracion. !!!!</importante>
+            <menosimportante>Con muchos datos</menosimportante>
+        </hola>
+
+    fichero3.json:  |
+        {
+            "usuario": {
+                "nombre": "Ivan",
+                "edad": 43
+            }
+        }
+    certificado:  |
+        {
+            "usuario": {
+                "nombre": "Ivan",
+                "edad": 43
+            }
+        }
+
+---
+
+kind:               Pod
+apiVersion:         v1
+
+metadata:
+    name:           configmaps
+
+spec:
+    volumes:
+        - name: volumen1
+          # De donde lo saco   <<<< Puede estar en un claim <> pv
+          # emptyDir: {}
+          # hostPath:
+          configMap:
+            name: ficheros
+            # De forma opcional
+            items:
+                - key: certificado
+                  path: fichero-certificado.json
+    containers:
+        - name:     contenedor
+          image:    nginx:latest
+          env:
+          
+            - name: VARIABLE1
+              value: VALOR_FIJO
+          
+            - name: OTRA_VARIABLE
+              valueFrom: 
+                configMapKeyRef:
+                    name: datos
+                    key:  CLAVE2
+
+        - name:     contenedor2
+          image:    ubuntu:latest
+          command:
+            - sh
+            - -c
+            - sleep 3600;
+          envFrom:
+            - configMapRef:
+                name: datos
+          env:                      #### Este tiene prioridad sobre el envFrom
+            - name: VARIABLE1
+              value: VALOR_FIJO
+            - name: CLAVE1
+              value: Nuevo valor 
+          volumeMounts:
+            - name: volumen1
+              mountPath: /datos
+---
+

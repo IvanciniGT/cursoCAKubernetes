@@ -1,0 +1,29 @@
+# Fichero de propiedades de configuración de la base de datos del wordpress
+kind:               ConfigMap
+apiVersion:         v1
+
+metadata:
+    name:           datos-bbdd
+
+data:
+    DB_USER:            wordpress   # Pongase aqui el usuario de la base de datos que contendrá las tablas 
+    DB_NAME:            wordpress
+    DATABASE:           wordpress
+    TABLE_PREFIX:       wp_
+
+---
+# Fichero de propiedades de configuración de la base de datos del wordpress
+kind:               Secret
+apiVersion:         v1
+
+metadata:
+    name:           datos-bbdd
+
+data:
+    DB_PASSWORD:        cGFzc3dvcmQ=    # Contraseña del usuario anterior
+    ROOT_PASSWORD:      cGFzc3dvcmQ=    # Se suministra en Base64
+
+# OJO NO ESTA SECURIZADO
+# Kubernetes, los secrets los guarda internamente securizados (Algorimo
+#        de encripcion con clave publica / privada = asimetrico)
+#   Esto en la bbdd de kubernetes: etcd

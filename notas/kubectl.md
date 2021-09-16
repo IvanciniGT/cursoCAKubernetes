@@ -5,6 +5,11 @@ kubectl [verbo] [tipo de objeto] [modificadores]
         - get
         - describe
         - delete
+        - create
+        - logs
+        - exec 
+        - update
+        - list
     
     objetos:
         - nodes
