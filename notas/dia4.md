@@ -106,5 +106,28 @@ Esos privilegios a su vez será combinaciones de OBJETOS con VERBOS:
 Pero las cuentas de servicio (ServiceAccount) no se usan solamente por personas... sino también por PROGRAMAS
 Programas que quieran interlocutar con el Cluster.
 
+-------
+HPA <<<<<
+Horizontal   Pod   AutoScaler
+    Min Pods: 5
+    Max Pods: 10
+    
+Gestiona el escalado automaticamente de los pods
+
+
+-------
+
+Wp 1
+    50% + 51%   PUFF !!!!
+Wp 2            PUFF !!!!
+    51%
+    
+4 nodos    
+    25%
+    
+Necesito escalar ?    +    Alta Disponibilidad
+    TENGO LOS PELOS COMO ESCARPIAS AHORA MISMO SI SOY EL ADMIN DE ESTE SISTEMA !!!!!
+Si se cae 1: Se caen los 2
+
 
 

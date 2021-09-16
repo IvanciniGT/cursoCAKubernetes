@@ -1,0 +1,19 @@
+kind: HorizontalPodAutoscaler
+apiVersion: autoscaling/v1
+
+metadata:
+    name: escalador-wordpress
+
+spec:
+    
+    # Qué quiero autoescalar
+    scaleTargetRef:
+        kind:           Deployment
+        apiVersion:     apps/v1
+        name:           wordpress
+
+    minReplicas: 2
+    maxReplicas: 7
+    
+    # Criterios
+    targetCPUUtilizationPercentage: 50   # La media de CPU de todos los pods supere ese valor
