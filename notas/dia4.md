@@ -129,5 +129,139 @@ Necesito escalar ?    +    Alta Disponibilidad
     TENGO LOS PELOS COMO ESCARPIAS AHORA MISMO SI SOY EL ADMIN DE ESTE SISTEMA !!!!!
 Si se cae 1: Se caen los 2
 
+--------
+Uso de CPU por parte de un POD
+POD ahora mismo: 2 CPU
+POD ahora mismo esta usando 200mc < 0.2 Del tiempo de un core....
+    Cada segundo esta usando el "equivalente" a 20% de un core
+        En la realidad puede ser que esté usando el 5% de 4 cores cada segundo
 
 
+Oye, Kubernetes !!!
+Cuando los pods estén usando de media un 50% de la CPU permitida... escala
+Kubernetes responde:
+    OK... ya puedo ver cuanto estan usando...
+    Pero... no me has dicho cuanto les permites usar,.... Como calculo el % de uso?
+    El % = ACTUAL/MAXIMO
+
+
+-------
+LIMITACION DE RECURSOS A UN CONTENEDOR
+resources:
+    requests:               # Esta si la va a a pasar
+        cpu: 500m
+        memory: 500Mi
+    limits:                 # Esta no la vais a ver nunca
+        cpu: 1
+        memory: 1000Mi
+        
+Request: El mínimo que solicito como desarrollador para que mi contenedor trabaje en un estado adecuado
+Limit: El máximo que kubernetes le va a entregar
+
+Para que sirve el request? Quien usa esta información? En que momento se usa?
+    Scheduller. En base a lo que se solicite,m el sched. colocara el pod en una determinada máquina.
+    Maquina que tiene que tener disponible (no comprometido) esos recursos
+    
+                                    No comprometido
+Nodo 1   2 cores 2 Gbs          >   0.5 core y 1 Gbs
+    WP (1.5 cores y 1 Gbs)
+Nodo2   3 Cores 3 Gbs           >   1 cores y 1.5 Gbs
+    MariaDB  (1 cores y 1 Gbs)
+        En el uso real... de repente se crece.. se viene arriba y:
+            2.5 cores y 2.5 Gbs de RAM      > Sin problema
+    Nginx ( 1 core y 0.5 Gbs de RAM) 
+        
+    NGINX quiere usar 1 core al completo.
+        Que ocurre en este escenario?
+            Decisión de Kubernetes...limitar el uso de CPU del mariaDB. El MAriaDB va mas lento de lo que podría
+    
+    MariaDB quiere usar mas memoria: 2.6 Gbs. Decision en este caso por parte de Kub?
+        Se cruje el pod de mariadb !!! LIQUIDADO. RESTART
+    
+WP (1.5 cores y 1 Gbs) >> Sched: En cualquiera... pej. Nodo1
+MariaDB  (1 cores y 1 Gbs) >> Sched: Nodo 2
+Nginx ( 1 core y 0.5 Gbs de RAM) >> Decision Sched: Nodo 2
+    
+    
+    
+    
+Nodo Tengo 2 gbs de ram
+    MariaDB que habia solicitado 1 Gb pero esta usando 1.5 Gbs
+    
+    Y ahora en esta situación meto un nginx al que tengo que garantizar 1 Gb de RAM
+        SI, hay memoria suficiente no comprometida.
+        Hay hueco real? NO.. pues se hace... Kub reinicia MariaDB
+    
+
+
+
+Nodo 1      CPU 80%
+Nodo 2      CPU 80%
+
+Quizas hay un HPA que quiere escalar.... pero no puede... porque ya no queda hueco en las maquinas
+
+Que estaría guay poder escalar?
+    Los nodos <<<< Esto no lo hace kubernetes. pero si Openshift
+    
+    
+De cara a controlar los costes: El objeto a utilizar: ResourceQuota
+Para que vienen bien los LimitRange?
+    Optimizar el reparto de recursos en el cluster
+    
+32 Gbs de RAM
+Desarrollador Proyecto WEB:
+    Namespace : 28 Gbs    < ResourceQuota
+          Requests
+    Pod 1: 31 Gbs
+    Pod 2:  2 Gbs
+    32Gbs < 31 = 1 Gbs
+------------
+
+NAMESPACE:
+    Cuotas:
+        Maximo 8 Gbs de RAM y 12 CPUs
+    Pod A:
+        Solicita 1 Gb de RAM y 1 CPU
+    
+    HPA Pod A: 
+        Min 5 - 10
+
+Arranco el sistema: Decision del HPA? Notificar al Deployment > 5 replicas
+    Deployment > Replicaset
+        ReplicaSet > Crear 5 pods
+            Cada pod es analizado por el sched > Asignar a una maquina
+                5 pods en funcionamiento con un uso total de:
+                    5 Gbs de RAM y 5 CPUs
+    CPU la tengo al 70% de media entre los 5 pods
+    HPA:
+        Son necesarios 4 pods mas > Deployment > replicaset > 4 pods mas
+                                                                V
+                                                              scheduler
+                                                                1er pod: Lo asigna a una maquina
+                                                                2º pod:  Lo asigna a una maquina
+                                                                3er pod: Lo asigna a una maquina
+                                                                4º pod:  Supera la cuota... no se asigna a ninguna maquina
+                                                                
+Existe el pod 4º dentro de kubernetes?  SI
+    Estado?     Pending schedling. !!!!!
+
+                                                                
+                                                                
+                                                                
+-----
+Dashboard
+    No teniamos metricas
+HPA
+    No teniamos metricas
+
+Montar metric-server
+    Ya tenemos metricas
+    
+El HPA seguia sin funcionar?
+    No podria calcular % . Faltaban establecer limites
+    
+    
+resources < POD (requests***, limits)                           <<< Desarrollo
+
+ResourceQuotas < A nivel de NS
+LimitRange     < A nivel de pod o contenedor dentro de un ns    <<< Admin cluster

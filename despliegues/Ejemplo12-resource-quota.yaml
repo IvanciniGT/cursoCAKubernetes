@@ -1,0 +1,16 @@
+kind:           ResourceQuota
+# Permite establecer limitaciones a nivel de NAMESPACE
+apiVersion:     v1
+
+metadata:
+    name:       limitaciones-wordpress
+    namespace:  web
+
+spec:
+    hard:
+        pods:       5
+        services:   5
+        persistentvolumeclaims: 5
+        limits.cpu:      2
+        request.cpu:     1
+        limits.memory: 2Gi

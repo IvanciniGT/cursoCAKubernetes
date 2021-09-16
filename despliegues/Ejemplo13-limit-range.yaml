@@ -1,0 +1,25 @@
+kind:           LimitRange
+# Permite establecer limitaciones a nivel de NAMESPACE
+apiVersion:     v1
+
+metadata:
+    name:       limitaciones-wordpress
+    namespace:  web
+
+spec:
+    limits:
+        - type: Pod
+          defaultRequest:       # Si en el ns web, en un pod, en un contenedor no hacen un request de cpu... 
+                                    # es como si hubieran pueto 1
+            cpu: 1
+          default:              # Si en el ns web, en un pod, en un contenedor no hacen un limit de cpu... 
+                                    # es como si hubieran pueto 2
+            cpu: 2
+          max:                   # Si en el ns web, en un pod, en un contenedor ponen limit de cpu... 
+                                    # no puede ser mayor que 3
+            cpu: 3
+          min:                   # Nunca pueden pedir menos de 0.5 de cpu
+            cpu: 0.5
+          
+#        - type: Pod
+    
