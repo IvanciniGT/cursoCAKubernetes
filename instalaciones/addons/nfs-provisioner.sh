@@ -5,3 +5,9 @@ helm template nfs-provisioner/nfs-subdir-external-provisioner \
     -f nfs-values.yaml \
     -n nfs-provisioner \
     --create-namespace
+    
+
+helm install mi-provisionador-nfs nfs-provisioner/nfs-subdir-external-provisioner \
+    -f nfs-values.yaml \
+    -n nfs-provisioner \
+    --create-namespace

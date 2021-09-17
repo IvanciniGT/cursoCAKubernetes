@@ -1,0 +1,15 @@
+
+# Desarrollador
+kind: PersistentVolumeClaim
+apiVersion: v1
+
+metadata:
+    name: peticion-volumen-2
+
+spec:
+    resources:
+        requests:
+            storage: 1Gi # informacional... se usa para hacer la vinculacion. NADA MAS
+    accessModes:
+        - ReadWriteOnce 
+    storageClassName: volumen-nfs

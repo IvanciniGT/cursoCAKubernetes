@@ -265,3 +265,31 @@ resources < POD (requests***, limits)                           <<< Desarrollo
 
 ResourceQuotas < A nivel de NS
 LimitRange     < A nivel de pod o contenedor dentro de un ns    <<< Admin cluster
+
+
+Bitnami < Wordpress
+
+-------
+HTTPS:
+
+Certificado de mi sitio (Nombre servidor)
+    Clave publica
+Clave privada
+
+Todo ello firmado por una CA reconocida
+
+CA reconocida que hoy en dia se usa muchisimo... 
+    por generar certificados gratuitos
+
+Let's encrypt
+    Hay un módulo para Kubernetes de Let's encrypt
+    que genera certificados automaticamente y se
+    encarga de su renovación
+    
+    
+    
+    
+    
+
+
+
