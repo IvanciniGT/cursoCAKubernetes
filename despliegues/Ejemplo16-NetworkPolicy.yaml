@@ -1,0 +1,40 @@
+kind:       NetworkPolicy
+apiVersion: networking.k8s.io/v1
+
+metadata:
+    name:   solo-was-atacan-oracle
+    namespace: desarrollo      # O hacer kubectl apply -f FICHERO -n NAMESPACE
+
+spec:
+    # Trabajan a nivel de POD
+    podSelector: # {}  # No damos filtros... Todos los pods... y ya no pondríamos la etiqueta: matchLabels
+        matchLabels:
+            app: oracle 
+    
+    policyTypes:
+        - Ingress       # Qué trafico permitimos hacia los pods (cualquiera) del namespace desarrollo
+        - Egress        # Qué trafico permitimos desde los pods (cualquiera) del namespace desarrollo (Hacia fuera)
+    
+    # Si no defino el elemento ingress, habiendo dicho que doy reglas de ingress: Deniego todo el tráfico
+    ingress:    # Reglas de ingress
+        #- {}        # Admitir todo el tráfico
+        - from: 
+            - namespaceSelector:
+                matchLabels:
+                    kubernetes.io/metadata.name: desarrollo
+            - podSelector:
+                matchLabels:
+                    app: was
+          ports:
+            - port: 1521
+              protocol: tcp
+    
+    # No pongo la marca egress > Deniego todo el trafico saliente
+    egress:     # Reglas de egress
+        # - {}    # Admite todo el trafico saliente
+        - to:
+            - ipBlock:
+                cidr: 8.0.0.0/8
+          ports:
+            - port: 8080
+              protocol: tcp

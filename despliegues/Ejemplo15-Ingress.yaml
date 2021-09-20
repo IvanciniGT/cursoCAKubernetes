@@ -1,0 +1,31 @@
+kind:               Ingress
+apiVersion:         networking.k8s.io/v1
+
+metadata:
+    name:           ingress-wp
+    annotations:
+        kubernetes.io/ingress.class: nginx   # Aqui es donde se dice a que INGRESS CONTROLLER SE APLICA ESTA REGLA
+
+spec:
+    rules:
+        - host: ca.ad                   # Donde tendría que estar definido? DNS?  publico  
+                                            # Se resuelve a que IP? A la IP publica del BC externo (metalLB)
+          http:
+            paths:
+                - backend:
+                    service:
+                        name: wordpress   #  ClusterIP
+                        port:
+                            number: 80
+                  path: /web
+                  pathType: Prefix
+
+
+
+# url:    http://web.ca.ad/home.html
+#      VVVV
+#    MetalLB   >>>>    NodePort: A un puerto (>30000) de un nodo del cluster 
+#                                       VVVVV
+#                                      servicio (nombre/IP clusterIP BC) INGRESS CONTROLLER
+#                                       VVVVV
+#                                       nginx (POD)
