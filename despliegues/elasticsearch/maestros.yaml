@@ -11,8 +11,13 @@ spec:
     type: ClusterIP 
     ports:
         - # La definicion de mapeos de puertos 
+            name: externo
             targetPort: 9200 
             port: 9200
+        - # La definicion de mapeos de puertos 
+            name: interno
+            targetPort: 9300
+            port: 9300
     selector:
         app: maestro-elk
 ---
@@ -75,6 +80,7 @@ spec:
                             value: "false"
                     ports:
                         - containerPort: 9200
+                        - containerPort: 9300
                     volumeMounts:
                         -   name:       pvc-maestro-elk
                             mountPath:  /usr/share/elasticsearch/data

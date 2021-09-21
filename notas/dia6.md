@@ -123,3 +123,16 @@ Maestro20 - M0, M1, M2, M3
 
 9200 < Comunicaciones con clientes < Ingesta, Corrdinador, DataX, Maestro Servicio: 9200
 9300 < Comunicaciones internas entre los nodos
+
+
+cluster de Kubernetes
+    Nodo 1K - VM - Labels
+        Nodo 1ES
+        Nodo 2ES
+    Nodo 2K - VM - Labels
+        Nodo 3ES
+        Nodo 4ES
+    Nodo 3K
+        Oracle que se lleva muy muy muy muy mal con esa configuracion
+    ...
+    Nodo NK
