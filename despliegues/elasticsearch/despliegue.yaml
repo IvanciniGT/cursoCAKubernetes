@@ -1,8 +1,14 @@
-kind: Namespace 
+---
+# Source: elk/templates/maestro/configmap.yaml
+kind: ConfigMap
 apiVersion: v1
 metadata:
-    name: elk
+    name: maestro-elk
+data:
+    MEMORIA_JAVA: -Xms220m -Xmx220m
+    NOMBRE_CLUSTER: ClusterDesa
 ---
+# Source: elk/templates/maestro/service.yaml
 kind: Service
 apiVersion: v1
 metadata:
@@ -21,16 +27,7 @@ spec:
     selector:
         app: maestro-elk
 ---
-    # Que voy a definir aqui... NetworkPolicy
----        
-kind: ConfigMap
-apiVersion: v1
-metadata:
-    name: maestro-elk
-data:
-    MEMORIA_JAVA: -Xms220m -Xmx220m
-    NOMBRE_CLUSTER: MiCluster
----
+# Source: elk/templates/maestro/statefulset.yaml
 kind: StatefulSet
 apiVersion: apps/v1
 metadata:
@@ -94,5 +91,3 @@ spec:
                         storage: 1Gi
                 accessModes:
                     - ReadWriteOnce
-    
-

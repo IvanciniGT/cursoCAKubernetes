@@ -1,0 +1,10 @@
+general:
+  nombreCluster: ClusterProd
+
+maestro:
+  configMap:
+    nombre: maestro-elk
+  pod:
+    memoriaJava: -Xms2200m -Xmx2200m
+
+

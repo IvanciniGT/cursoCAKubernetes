@@ -1,0 +1,10 @@
+general:
+  nombreCluster: ClusterDesa
+
+maestro:
+  configMap:
+    nombre: maestro-elk
+  pod:
+    memoriaJava: -Xms220m -Xmx220m
+
+

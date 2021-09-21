@@ -53,3 +53,6 @@ helm repo add bitnami https://charts.bitnami.com/bitnami
 helm install mi-wordpress bitnami/wordpress \
     -n wordpress \
     -f wordpress.values.yaml
+    
+
+helm pull bitnami/wordpress

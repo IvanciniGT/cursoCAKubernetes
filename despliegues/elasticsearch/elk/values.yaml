@@ -1,0 +1,14 @@
+general:
+  # Oye, pringao, aqui pon el nombre del
+  # cluster de ES, que se aplicará a todos
+  # los nodos del cluster
+  nombreCluster: ClusterProd 
+  
+
+maestro:
+  configMap:
+    nombre: maestro-elk
+  pod:
+    memoriaJava: -Xms2200m -Xmx2200m
+
+

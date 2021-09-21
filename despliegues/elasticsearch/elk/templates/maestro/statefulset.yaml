@@ -1,0 +1,66 @@
+
+kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+    name: maestro-elk         # maestro-elk-0     maestro-elk-1
+spec:
+    replicas:       2
+    selector:
+        matchLabels:
+            app:    maestro-elk
+    serviceName:    maestro-elk
+    template:
+        metadata:
+            labels:
+                app: maestro-elk
+        spec:
+            containers:
+                -   name:               elasticsearch
+                    image:              docker.elastic.co/elasticsearch/elasticsearch:7.7.0
+                    env:
+                      -     name: node.name
+                            valueFrom:
+                                fieldRef:
+                                    fieldPath:  metadata.name               # Nombre de pod
+                      -     name: cluster.name
+                            valueFrom:
+                                configMapKeyRef:
+                                    name:   maestro-elk
+                                    key:    NOMBRE_CLUSTER
+                      -     name: discovery.seed_hosts
+                            value: maestro-elk-0.maestro-elk,maestro-elk-1.maestro-elk           
+                      -     name: cluster.initial_master_nodes
+                            value: maestro-elk-0, maestro-elk-1     # Nombre de nodos (en ES) que optarán en primer lugar a ser maestros  
+                      -     name: ES_JAVA_OPTS
+                            valueFrom:
+                                configMapKeyRef:
+                                    name:   maestro-elk
+                                    key:    MEMORIA_JAVA
+                      -     name: node.master
+                            value: "true"
+                      -     name: node.voting_only
+                            value: "false"
+                      -     name: node.data
+                            value: "false"
+                      -     name: node.ingest
+                            value: "false"
+                      -     name: node.remote_cluster_client
+                            value: "false"
+                    ports:
+                        - containerPort: 9200
+                        - containerPort: 9300
+                    volumeMounts:
+                        -   name:       pvc-maestro-elk
+                            mountPath:  /usr/share/elasticsearch/data
+    volumeClaimTemplates:
+        -   metadata:
+                name: pvc-maestro-elk
+            spec:
+                storageClassName: volumen-nfs
+                resources:
+                    requests:
+                        storage: 1Gi
+                accessModes:
+                    - ReadWriteOnce
+    
+
