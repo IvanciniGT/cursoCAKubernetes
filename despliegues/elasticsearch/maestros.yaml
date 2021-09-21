@@ -79,12 +79,14 @@ spec:
                         -   name:       pvc-maestro-elk
                             mountPath:  /usr/share/elasticsearch/data
     volumeClaimTemplates:
-        -   name: pvc-maestro-elk
-            storageClassName: volumen-nfs
-            resources:
-                request:
-                    storage: 1Gi
-            acessModes:
-                - ReadWriteOnce
+        -   metadata:
+                name: pvc-maestro-elk
+            spec:
+                storageClassName: volumen-nfs
+                resources:
+                    request:
+                        storage: 1Gi
+                acessModes:
+                    - ReadWriteOnce
     
 
