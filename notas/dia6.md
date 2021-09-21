@@ -119,3 +119,7 @@ Maestro2 - M0, M1, M3
 Maestro3 - M0, M1, M2
 
 Maestro20 - M0, M1, M2, M3
+
+
+9200 < Comunicaciones con clientes < Ingesta, Corrdinador, DataX, Maestro Servicio: 9200
+9300 < Comunicaciones internas entre los nodos
