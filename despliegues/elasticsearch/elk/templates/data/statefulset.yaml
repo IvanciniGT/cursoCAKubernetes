@@ -1,0 +1,59 @@
+kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+  name: data-elk
+spec:
+  serviceName: {{ .Values.data.pod.serviceName }}
+  replicas: {{ .Values.data.pod.replicas }}
+  selector:
+    matchLabels:
+      app: data-elk
+  template:
+    metadata:
+      name: data-elk-template
+      labels:
+        app: data-elk
+    spec:
+      containers:
+        - name: data1
+          image: {{ .Values.cluster.imagenes.elasticsearch }}:{{ .Values.cluster.imagenes.version}}
+          env:
+            - name: node.name
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: cluster.name
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.data.configMap.nombre }}
+                  key: NOMBRE_CLUSTER
+            - name: discovery.seed_hosts
+              value: {{ .Values.maestro.servicio.nombre }}
+            - name: ES_JAVA_OPTS
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.data.configMap.nombre }}
+                  key: MEMORIA_JAVA
+            - name: node.master
+              value: 'true'
+            - name: node.voting_only
+              value: 'true'
+            - name: node.data
+              value: 'true'
+            - name: node.ingest
+              value: 'false'
+            - name: node.remote_cluster_client
+              value: 'false'
+          volumeMounts:
+            - name: pvc-data-elk
+              mountPath: {{ .Values.cluster.persistencia.rutaDatosEnImagen }}
+  volumeClaimTemplates:
+    - metadata:
+        name: pvc-data-elk
+      spec:
+        storageClassName: {{ .Values.cluster.persistencia.storageClass }}
+        resources:
+          requests:
+            storage: {{ .Values.data.pod.storage }}
+        accessModes:
+          - ReadWriteOnce

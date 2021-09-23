@@ -1,0 +1,7 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ .Values.data.configMap.nombre }}
+data:
+  NOMBRE_CLUSTER: {{ .Values.cluster.nombre }}
+  MEMORIA_JAVA: {{ .Values.data.pod.memoriaJava }}

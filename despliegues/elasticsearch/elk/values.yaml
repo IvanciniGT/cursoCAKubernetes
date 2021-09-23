@@ -1,14 +1,87 @@
-general:
-  # Oye, pringao, aqui pon el nombre del
-  # cluster de ES, que se aplicará a todos
-  # los nodos del cluster
-  nombreCluster: ClusterProd 
-  
+cluster:
+  nombre: ClusterProd 
+  puerto: 9200    
+  puertoInterno: 9300    
+  puerto_kibana: 5601
+  puerto_cerebro: 9000
+  prtcontainerport_kibana: 5601
+  prtcontainerport_cerebro: 9000
+  imagenes:
+    elasticsearch: docker.elastic.co/elasticsearch/elasticsearch
+    kibana: "kibana"
+    version: 7.7.0
+    cerebro: "lmenezes/cerebro:0.8.5"
+  persistencia:
+    storageClass: volumen-nfs
+    rutaDatosEnImagen: /usr/share/elasticsearch/data
 
 maestro:
   configMap:
     nombre: maestro-elk
   pod:
-    memoriaJava: -Xms2200m -Xmx2200m
+    memoriaJava: -Xms220m -Xmx220m
+    espacioAlmacenamiento: 1Gi
+    replicas: 2
+  servicio:
+    nombre: maestro-elk
 
+kibana:
+    configMap:
+        nombre: kibana-elk
+        elk_coord: "http://coordinador-elk:9200"
+        kibana_name: "kibana"
+        kibana_host: "0.0.0.0"
 
+    service_kibana:
+        nombre: "kibana-srv"
+        tipo: NodePort
+        nodeport: 32100
+        nombre_bc: "kibana"
+    service_cerebro:
+        nombre: "cerebro-srv"
+        tipo: NodePort
+        nodeport: 32101
+        nombre_bc: "cerebro"
+       
+    pod_kibana:
+        nombre: kibana-pod-deployment
+        replicas: 1
+        matchlabels: "kibana"
+        tplname: "kibana-pod-template"
+
+    pod_cerebro:
+        nombre: cerebro-pod-deployment
+        replicas: 1
+        matchlabels: "cerebro"
+        tplname: "cerebro-pod-template"
+        
+data:
+    configMap:
+        nombre: cm-data-elk
+    pod:
+        serviceName: data-elk
+        memoriaJava: -Xms1220m -Xmx1220m
+        replicas: 2
+        storage: 1Gi  
+
+coordinador:
+  configMap:
+    nombre: coordinador-elk
+  pod:
+    memoriaJava: -Xms220m -Xmx220m
+    replicas: 2
+    storage: 1Gi
+  service:
+    nombre: coordinador-elk
+    type: ClusterIP
+
+ingesta:
+  configMap:
+    nombre: ingesta-elk
+  pod:
+    memoriaJava: -Xms220m -Xmx220m
+    replicas: 2
+    storage: 1Gi
+  service:
+    nombre: ingesta-elk
+    type: NodePort

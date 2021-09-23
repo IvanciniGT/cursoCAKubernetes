@@ -2,17 +2,17 @@
 kind: Service
 apiVersion: v1
 metadata:
-    name: maestro-elk
+    name: {{ .Values.maestro.servicio.nombre }}                   ######
 spec:
     type: ClusterIP 
     ports:
         - # La definicion de mapeos de puertos 
             name: externo
-            targetPort: 9200 
-            port: 9200
+            targetPort: {{ .Values.cluster.puerto }}            ######
+            port: {{ .Values.cluster.puerto }}
         - # La definicion de mapeos de puertos 
             name: interno
-            targetPort: 9300
-            port: 9300
+            targetPort: {{ .Values.cluster.puertoInterno }}            ######
+            port: {{ .Values.cluster.puertoInterno }}
     selector:
         app: maestro-elk

@@ -1,0 +1,38 @@
+kind: Service
+apiVersion: v1
+
+metadata:
+    name: {{ .Values.kibana.service_kibana.nombre }} # Nombre DNS - IP Propia del balanceador de Carca (BC)
+    
+spec:
+    type: {{ .Values.kibana.service_kibana.tipo }}
+    ports:
+        - # La definicion de mapeos de puertos
+            port: {{ .Values.cluster.puerto_kibana }}      # IP del BALANCEADOR
+            targetPort: {{ .Values.cluster.puerto_kibana }}  # La IP DEL POD
+            {{- if eq .Values.kibana.service_kibana.tipo "NodePort" }}
+            nodePort: {{ .Values.kibana.service_kibana.nodeport }}
+            {{- end }}
+    selector:
+        app: {{ .Values.kibana.service_kibana.nombre_bc }}    # Balanceador
+
+---
+kind: Service
+apiVersion: v1
+
+metadata:
+    name: {{ .Values.kibana.service_cerebro.nombre }} # Nombre DNS - IP Propia del balanceador de Carca (BC)
+    
+spec:
+    type: {{ .Values.kibana.service_cerebro.tipo }}
+    ports:
+        - # La definicion de mapeos de puertos
+            port: {{ .Values.cluster.puerto_cerebro }}     # IP del BALANCEADOR
+            targetPort: {{ .Values.cluster.puerto_cerebro }}  # La IP DEL POD
+            {{- if eq .Values.kibana.service_cerebro.tipo "NodePort" }}
+            nodePort: {{ .Values.kibana.service_cerebro.nodeport }}
+            {{- end }}
+    selector:
+        app: {{ .Values.kibana.service_cerebro.nombre_bc }}    # Balanceador
+
+

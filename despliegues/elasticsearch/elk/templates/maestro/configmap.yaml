@@ -4,4 +4,4 @@ metadata:
     name: {{ .Values.maestro.configMap.nombre }}
 data:
     MEMORIA_JAVA: {{ .Values.maestro.pod.memoriaJava }}
-    NOMBRE_CLUSTER: {{ .Values.general.nombreCluster }}
+    NOMBRE_CLUSTER: {{ .Values.cluster.nombre }}

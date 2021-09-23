@@ -1,0 +1,14 @@
+kind: Service
+apiVersion: v1
+
+metadata:
+    name: {{ .Values.ingesta.service.nombre }} # Nombre DNS - IP Propia del BC
+
+spec:
+    type: {{ .Values.ingesta.service.type }} # Por defecto
+    ports:
+        - # La definicion de mapeos de puertos 
+            targetPort: {{ .Values.cluster.puerto }} 
+            port: {{ .Values.cluster.puerto }}     
+    selector:
+        app: {{ .Values.ingesta.service.nombre }} # Balanceador

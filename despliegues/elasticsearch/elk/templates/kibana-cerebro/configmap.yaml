@@ -1,0 +1,8 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+    name: {{ .Values.kibana.configMap.nombre }}
+data:
+    ELASTICSEARCH_HOSTS: {{ .Values.kibana.configMap.elk_coord }}
+    SERVER_NAME: {{ .Values.kibana.configMap.kibana_name }}
+    SERVER_HOST: {{ .Values.kibana.configMap.kibana_host }}

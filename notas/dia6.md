@@ -136,3 +136,21 @@ cluster de Kubernetes
         Oracle que se lleva muy muy muy muy mal con esa configuracion
     ...
     Nodo NK
+    
+    
+
+LoadBalancer
+NodePort
+Ingress < IngressController (Proxy reverso-nginx)
+            VVVVV
+            LoadBalancer
+VirtualService < Gateway ISTIO 
+                    VVVVV
+                    LoadBalancer
+
+Openshift
+Route
+
+
+
+

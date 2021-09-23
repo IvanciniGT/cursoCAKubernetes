@@ -1,0 +1,455 @@
+---
+# Source: elk/templates/coordinador/configmap.yaml
+kind: ConfigMap
+apiVersion: v1
+metadata:
+    name: coordinador-elk
+data:
+    MEMORIA_JAVA: -Xms220m -Xmx220m
+    NOMBRE_CLUSTER: ClusterProd
+---
+# Source: elk/templates/data/configmap.yaml
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: cm-data-elk
+data:
+  NOMBRE_CLUSTER: ClusterProd
+  MEMORIA_JAVA: -Xms1220m -Xmx1220m
+---
+# Source: elk/templates/ingesta/configmap.yaml
+kind: ConfigMap
+apiVersion: v1
+metadata:
+    name: ingesta-elk
+data:
+    MEMORIA_JAVA: -Xms220m -Xmx220m
+    NOMBRE_CLUSTER: ClusterProd
+---
+# Source: elk/templates/kibana-cerebro/configmap.yaml
+kind: ConfigMap
+apiVersion: v1
+metadata:
+    name: kibana-elk
+data:
+    ELASTICSEARCH_HOSTS: http://coordinador-elk:9200
+    SERVER_NAME: kibana
+    SERVER_HOST: 0.0.0.0
+---
+# Source: elk/templates/maestro/configmap.yaml
+kind: ConfigMap
+apiVersion: v1
+metadata:
+    name: maestro-elk
+data:
+    MEMORIA_JAVA: -Xms220m -Xmx220m
+    NOMBRE_CLUSTER: ClusterProd
+---
+# Source: elk/templates/coordinador/service.yaml
+kind: Service
+apiVersion: v1
+
+metadata:
+    name: coordinador-elk # Nombre DNS - IP Propia del BC
+
+spec:
+    type: ClusterIP # Por defecto
+    ports:
+        - # La definicion de mapeos de puertos 
+            targetPort: 9200 
+            port: 9200     
+    selector:
+        app: coordinador-elk # Balanceador
+---
+# Source: elk/templates/ingesta/service.yaml
+kind: Service
+apiVersion: v1
+
+metadata:
+    name: ingesta-elk # Nombre DNS - IP Propia del BC
+
+spec:
+    type: NodePort # Por defecto
+    ports:
+        - # La definicion de mapeos de puertos 
+            targetPort: 9200 
+            port: 9200     
+    selector:
+        app: ingesta-elk # Balanceador
+---
+# Source: elk/templates/kibana-cerebro/service.yaml
+kind: Service
+apiVersion: v1
+
+metadata:
+    name: kibana-srv # Nombre DNS - IP Propia del balanceador de Carca (BC)
+    
+spec:
+    type: NodePort
+    ports:
+        - # La definicion de mapeos de puertos
+            port: 5601      # IP del BALANCEADOR
+            targetPort: 5601  # La IP DEL POD
+            nodePort: 32100
+    selector:
+        app: kibana    # Balanceador
+---
+# Source: elk/templates/kibana-cerebro/service.yaml
+kind: Service
+apiVersion: v1
+
+metadata:
+    name: cerebro-srv # Nombre DNS - IP Propia del balanceador de Carca (BC)
+    
+spec:
+    type: NodePort
+    ports:
+        - # La definicion de mapeos de puertos
+            port: 9000     # IP del BALANCEADOR
+            targetPort: 9000  # La IP DEL POD
+            nodePort: 32101
+    selector:
+        app: cerebro    # Balanceador
+---
+# Source: elk/templates/maestro/service.yaml
+kind: Service
+apiVersion: v1
+metadata:
+    name: maestro-elk                   ######
+spec:
+    type: ClusterIP 
+    ports:
+        - # La definicion de mapeos de puertos 
+            name: externo
+            targetPort: 9200            ######
+            port: 9200
+        - # La definicion de mapeos de puertos 
+            name: interno
+            targetPort: 9300            ######
+            port: 9300
+    selector:
+        app: maestro-elk
+---
+# Source: elk/templates/kibana-cerebro/deployment.yaml
+kind: Deployment
+apiVersion: apps/v1
+
+metadata:
+    name: kibana-pod-deployment
+spec:
+    replicas: 1
+    selector: 
+        matchLabels:
+            app: kibana
+
+    template: 
+        metadata:
+            name: kibana-pod-template # Identificador
+            labels:
+                app: kibana             # Este es el que se usa para vincular con el servicio (matchLabels del servicio)
+
+        spec:
+            containers: 
+                - # Contenedor
+                    name: kibana
+                    image: kibana:7.7.0
+                    ports:
+                        - containerPort: 5601
+                    env:
+                        - name: ELASTICSEARCH_HOSTS
+                          valueFrom:
+                            configMapKeyRef:
+                                name: kibana-elk
+                                key: ELASTICSEARCH_HOSTS
+                        - name: SERVER_NAME
+                          valueFrom:
+                            configMapKeyRef:
+                                name: kibana-elk
+                                key: SERVER_NAME
+                        - name: SERVER_HOST
+                          valueFrom:
+                            configMapKeyRef:
+                                name: kibana-elk
+                                key: SERVER_HOST
+---
+# Source: elk/templates/kibana-cerebro/deployment.yaml
+kind: Deployment
+apiVersion: apps/v1
+
+metadata:
+    name: cerebro-pod-deployment
+spec:
+    replicas: 1
+    selector: 
+        matchLabels:
+            app: cerebro
+
+    template: 
+        metadata:
+            name: cerebro-pod-template # Identificador
+            labels:
+                app: cerebro
+
+        spec:
+            containers: 
+                - # Contenedor
+                    name: cerebro
+                    image: lmenezes/cerebro:0.8.5
+                    ports:
+                        - containerPort: 9000
+---
+# Source: elk/templates/coordinador/statefulset.yaml
+#statefulset
+kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+    name: coordinador-elk   # coordinador-elk0 y coordinador-elk1   
+spec:
+    replicas: 2
+    selector:
+        matchLabels:
+            app: coordinador-elk    
+    serviceName: coordinador-elk
+    template:
+        metadata:
+            labels:
+                app: coordinador-elk
+        spec:
+            containers:
+                -   name:   elasticsearch
+                    image:  docker.elastic.co/elasticsearch/elasticsearch:7.7.0
+                    env:
+                          - name:   node.name
+                            valueFrom:  
+                                fieldRef:
+                                    fieldPath: metadata.name
+                          - name:   cluster.name
+                            valueFrom:
+                                configMapKeyRef:
+                                    name:   coordinador-elk
+                                    key:    NOMBRE_CLUSTER                      
+                          - name:   discovery.seed_hosts
+                            value:  maestro-elk                        
+                          - name:   ES_JAVA_OPTS
+                            valueFrom:
+                                configMapKeyRef:
+                                    name:   coordinador-elk
+                                    key:    MEMORIA_JAVA
+                          - name:   node.master 
+                            value:  "false"
+                          - name:   node.voting_only
+                            value:  "false"                          
+                          - name:   node.data
+                            value:  "false"                          
+                          - name:   node.ingest
+                            value:  "false"
+                          - name:   node.remote_cluster_client
+                            value:  "false"                           
+
+                    ports:
+                        - containerPort:  9200
+                    volumeMounts:
+                        -   name:   pvc-coordinador-elk
+                            mountPath: /usr/share/elasticsearch/data
+                    
+    volumeClaimTemplates:
+        -   metadata:
+                name: pvc-coordinador-elk
+            spec:
+                storageClassName:   volumen-nfs
+                resources:
+                    requests:
+                        storage:    1Gi
+                accessModes:
+                    - ReadWriteOnce
+---
+# Source: elk/templates/data/statefulset.yaml
+kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+  name: data-elk
+spec:
+  serviceName: data-elk
+  replicas: 2
+  selector:
+    matchLabels:
+      app: data-elk
+  template:
+    metadata:
+      name: data-elk-template
+      labels:
+        app: data-elk
+    spec:
+      containers:
+        - name: data1
+          image: docker.elastic.co/elasticsearch/elasticsearch:7.7.0
+          env:
+            - name: node.name
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: cluster.name
+              valueFrom:
+                configMapKeyRef:
+                  name: cm-data-elk
+                  key: NOMBRE_CLUSTER
+            - name: discovery.seed_hosts
+              value: maestro-elk
+            - name: ES_JAVA_OPTS
+              valueFrom:
+                configMapKeyRef:
+                  name: cm-data-elk
+                  key: MEMORIA_JAVA
+            - name: node.master
+              value: 'true'
+            - name: node.voting_only
+              value: 'true'
+            - name: node.data
+              value: 'true'
+            - name: node.ingest
+              value: 'false'
+            - name: node.remote_cluster_client
+              value: 'false'
+          volumeMounts:
+            - name: pvc-data-elk
+              mountPath: /usr/share/elasticsearch/data
+  volumeClaimTemplates:
+    - metadata:
+        name: pvc-data-elk
+      spec:
+        storageClassName: volumen-nfs
+        resources:
+          requests:
+            storage: 1Gi
+        accessModes:
+          - ReadWriteOnce
+---
+# Source: elk/templates/ingesta/statefulset.yaml
+#statefulset
+kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+    name: ingesta-elk   # ingesta-elk0 y ingesta-elk1   
+spec:
+    replicas: 2
+    selector:
+        matchLabels:
+            app: ingesta-elk    
+    serviceName: ingesta-elk
+    template:
+        metadata:
+            labels:
+                app: ingesta-elk
+        spec:
+            containers:
+                -   name:   elasticsearch
+                    image:  docker.elastic.co/elasticsearch/elasticsearch:7.7.0
+                    env:
+                          - name:   node.name
+                            valueFrom:  
+                                fieldRef:
+                                    fieldPath: metadata.name
+                          - name:   cluster.name
+                            valueFrom:
+                                configMapKeyRef:
+                                    name:   ingesta-elk
+                                    key:    NOMBRE_CLUSTER                      
+                          - name:   discovery.seed_hosts
+                            value:  maestro-elk                        
+                          - name:   ES_JAVA_OPTS
+                            valueFrom:
+                                configMapKeyRef:
+                                    name:   ingesta-elk
+                                    key:    MEMORIA_JAVA
+                          - name:   node.master 
+                            value:  "false"
+                          - name:   node.voting_only
+                            value:  "false"                          
+                          - name:   node.data
+                            value:  "false"                          
+                          - name:   node.ingest
+                            value:  "true"
+                          - name:   node.remote_cluster_client
+                            value:  "false"                           
+
+                    ports:
+                        - containerPort:  9200
+                    volumeMounts:
+                        -   name:   pvc-ingesta-elk
+                            mountPath: /usr/share/elasticsearch/data
+                    
+    volumeClaimTemplates:
+        -   metadata:
+                name: pvc-ingesta-elk
+            spec:
+                storageClassName:   volumen-nfs
+                resources:
+                    requests:
+                        storage:    1Gi
+                accessModes:
+                    - ReadWriteOnce
+---
+# Source: elk/templates/maestro/statefulset.yaml
+kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+    name: maestro-elk         # maestro-elk-0     maestro-elk-1
+spec:
+    replicas:       2
+    selector:
+        matchLabels:
+            app:    maestro-elk
+    serviceName:    maestro-elk
+    template:
+        metadata:
+            labels:
+                app: maestro-elk
+        spec:
+            containers:
+                -   name:               elasticsearch
+                    image:              docker.elastic.co/elasticsearch/elasticsearch:7.7.0
+                    env:
+                      -     name: node.name
+                            valueFrom:
+                                fieldRef:
+                                    fieldPath:  metadata.name               # Nombre de pod
+                      -     name: cluster.name
+                            valueFrom:
+                                configMapKeyRef:
+                                    name:   maestro-elk
+                                    key:    NOMBRE_CLUSTER
+                      -     name: discovery.seed_hosts
+                            value: maestro-elk-0.maestro-elk,maestro-elk-1.maestro-elk           
+                      -     name: cluster.initial_master_nodes
+                            value: maestro-elk-0, maestro-elk-1     # Nombre de nodos (en ES) que optarán en primer lugar a ser maestros  
+                      -     name: ES_JAVA_OPTS
+                            valueFrom:
+                                configMapKeyRef:
+                                    name:   maestro-elk
+                                    key:    MEMORIA_JAVA
+                      -     name: node.master
+                            value: "true"
+                      -     name: node.voting_only
+                            value: "false"
+                      -     name: node.data
+                            value: "false"
+                      -     name: node.ingest
+                            value: "false"
+                      -     name: node.remote_cluster_client
+                            value: "false"
+                    ports:
+                        - containerPort: 9200
+                        - containerPort: 9300
+                    volumeMounts:
+                        -   name:       pvc-maestro-elk
+                            mountPath:  /usr/share/elasticsearch/data
+    volumeClaimTemplates:
+        -   metadata:
+                name: pvc-maestro-elk
+            spec:
+                storageClassName: volumen-nfs
+                resources:
+                    requests:
+                        storage: 1Gi
+                accessModes:
+                    - ReadWriteOnce

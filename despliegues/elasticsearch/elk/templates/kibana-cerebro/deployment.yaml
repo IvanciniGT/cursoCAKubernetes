@@ -1,0 +1,68 @@
+---
+kind: Deployment
+apiVersion: apps/v1
+
+metadata:
+    name: {{ .Values.kibana.pod_kibana.nombre }}
+spec:
+    replicas: {{ .Values.kibana.pod_kibana.replicas }}
+    selector: 
+        matchLabels:
+            app: {{ .Values.kibana.pod_kibana.matchlabels }}
+
+    template: 
+        metadata:
+            name: {{ .Values.kibana.pod_kibana.tplname }} # Identificador
+            labels:
+                app: {{ .Values.kibana.service_kibana.nombre_bc }}             # Este es el que se usa para vincular con el servicio (matchLabels del servicio)
+
+        spec:
+            containers: 
+                - # Contenedor
+                    name: kibana
+                    image: {{ .Values.cluster.imagenes.kibana }}:{{ .Values.cluster.imagenes.version }}
+                    ports:
+                        - containerPort: {{ .Values.cluster.prtcontainerport_kibana }}
+                    env:
+                        - name: ELASTICSEARCH_HOSTS
+                          valueFrom:
+                            configMapKeyRef:
+                                name: kibana-elk
+                                key: ELASTICSEARCH_HOSTS
+                        - name: SERVER_NAME
+                          valueFrom:
+                            configMapKeyRef:
+                                name: kibana-elk
+                                key: SERVER_NAME
+                        - name: SERVER_HOST
+                          valueFrom:
+                            configMapKeyRef:
+                                name: kibana-elk
+                                key: SERVER_HOST
+
+
+---
+kind: Deployment
+apiVersion: apps/v1
+
+metadata:
+    name: {{ .Values.kibana.pod_cerebro.nombre }}
+spec:
+    replicas: {{ .Values.kibana.pod_cerebro.replicas }}
+    selector: 
+        matchLabels:
+            app: {{ .Values.kibana.pod_cerebro.matchlabels }}
+
+    template: 
+        metadata:
+            name: {{ .Values.kibana.pod_cerebro.tplname }} # Identificador
+            labels:
+                app: {{ .Values.kibana.service_cerebro.nombre_bc }}
+
+        spec:
+            containers: 
+                - # Contenedor
+                    name: cerebro
+                    image: {{ .Values.cluster.imagenes.cerebro }}
+                    ports:
+                        - containerPort: {{ .Values.cluster.prtcontainerport_cerebro }}
